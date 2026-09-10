@@ -1,5 +1,6 @@
 node_modules/
 .env
+dev-cycle-architecture.html
 data/gitea/*
 !data/gitea/.gitkeep
 data/dynamodb/*
