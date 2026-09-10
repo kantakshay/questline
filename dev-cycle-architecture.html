@@ -1,0 +1,789 @@
+<title>Dev Cycle Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg:            #FAF9F5;
+    --surface:       #FFFFFF;
+    --surface-2:     #F1EFE7;
+    --border:        #E1DDCE;
+    --ink:           #201F1B;
+    --ink-soft:      #6B6656;
+    --ink-faint:     #9B9584;
+    --accent:        #1F6F5C;
+    --accent-strong: #124A3C;
+    --accent-soft:   #E1F0EA;
+    --track-fe:      #33578F;
+    --track-fe-bg:   #E7EDF6;
+    --track-be:      #8B4A63;
+    --track-be-bg:   #F5E9ED;
+    --track-fs:      #A5721F;
+    --track-fs-bg:   #F6EEE0;
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:            #14171A;
+      --surface:       #1B1F24;
+      --surface-2:     #21262C;
+      --border:        #30363D;
+      --ink:           #ECEAE1;
+      --ink-soft:      #9B9C92;
+      --ink-faint:     #656A62;
+      --accent:        #4FBFA0;
+      --accent-strong: #8CE8CB;
+      --accent-soft:   #17332C;
+      --track-fe:      #7AA3E8;
+      --track-fe-bg:   #1B2740;
+      --track-be:      #E092AC;
+      --track-be-bg:   #3A2230;
+      --track-fs:      #E0AC5C;
+      --track-fs-bg:   #3A2E14;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:            #14171A;
+    --surface:       #1B1F24;
+    --surface-2:     #21262C;
+    --border:        #30363D;
+    --ink:           #ECEAE1;
+    --ink-soft:      #9B9C92;
+    --ink-faint:     #656A62;
+    --accent:        #4FBFA0;
+    --accent-strong: #8CE8CB;
+    --accent-soft:   #17332C;
+    --track-fe:      #7AA3E8;
+    --track-fe-bg:   #1B2740;
+    --track-be:      #E092AC;
+    --track-be-bg:   #3A2230;
+    --track-fs:      #E0AC5C;
+    --track-fs-bg:   #3A2E14;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 18px 32px 28px;
+    border-right: 1px solid var(--border);
+  }
+  .brand {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .brand-sub {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 28px;
+  }
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 20px 0 6px;
+  }
+  .nav-label:first-of-type { margin-top: 0; }
+  .side-nav { list-style: none; padding: 0; margin: 0; }
+  .side-nav a {
+    display: block;
+    padding: 5px 10px;
+    margin: 1px 0;
+    border-radius: 5px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+  }
+  .side-nav a:hover { color: var(--ink); background: var(--surface-2); }
+
+  /* Main */
+  .main { padding: 40px 48px 100px; min-width: 0; }
+  .doc-head {
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 10px;
+  }
+  .doc-dek {
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 62ch;
+    line-height: 1.6;
+  }
+
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+  .section-kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .section-intro {
+    color: var(--ink-soft);
+    max-width: 68ch;
+    margin: 10px 0 22px;
+  }
+  p { max-width: 68ch; }
+  h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 22px 0 10px;
+  }
+
+  code, .mono { font-family: var(--mono); }
+  .inline-code {
+    font-family: var(--mono);
+    font-size: 0.87em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent-strong);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  /* Diagram wrapper */
+  figure.diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 20px 16px;
+    margin: 0;
+    overflow-x: auto;
+  }
+  figure.diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  figcaption {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    text-align: left;
+    padding: 9px 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-soft);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.key, td strong { color: var(--ink); font-weight: 600; }
+  td.mono-cell { font-family: var(--mono); font-size: 12px; color: var(--accent-strong); white-space: nowrap; }
+
+  /* Track pills */
+  .track {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .track.fe { color: var(--track-fe); background: var(--track-fe-bg); }
+  .track.be { color: var(--track-be); background: var(--track-be-bg); }
+  .track.fs { color: var(--track-fs); background: var(--track-fs-bg); }
+
+  /* Journey list (real sequence -> numbered) */
+  .steps { display: flex; flex-direction: column; }
+  .step { display: grid; grid-template-columns: 32px 1fr; }
+  .step-rail { display: flex; flex-direction: column; align-items: center; }
+  .step-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-soft); border: 1.5px solid var(--accent);
+    color: var(--accent-strong); font-family: var(--mono); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-line { width: 1.5px; flex: 1; background: var(--border); margin: 4px 0; min-height: 18px; }
+  .step:last-child .step-line { display: none; }
+  .step-body { padding: 0 0 22px 14px; }
+  .step-title { font-family: var(--mono); font-weight: 600; font-size: 13.5px; margin-bottom: 4px; }
+  .step-desc { font-size: 13.5px; color: var(--ink-soft); max-width: 64ch; }
+
+  /* Stack grid */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .stack-card { padding: 16px 18px; }
+  .stack-card .layer {
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 6px;
+  }
+  .stack-card .pick { font-weight: 600; font-size: 14.5px; margin-bottom: 6px; }
+  .stack-card .why { font-size: 13px; color: var(--ink-soft); }
+
+  /* Two-column callout */
+  .callout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .callout .card { padding: 16px 18px; }
+  .callout .card h4 {
+    font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-strong);
+    margin: 0 0 8px;
+  }
+  .callout .card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+
+  ul.plain { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; }
+  ul.plain li { margin-bottom: 5px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .main { padding: 28px 22px 80px; }
+    .stack-grid, .callout { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">Dev Cycle</div>
+    <div class="brand-sub">Architecture Wiki</div>
+
+    <div class="nav-label">System</div>
+    <ul class="side-nav">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#stack">Tech Stack</a></li>
+      <li><a href="#lifecycle">PR Lifecycle</a></li>
+      <li><a href="#data">Data Model</a></li>
+    </ul>
+
+    <div class="nav-label">Product</div>
+    <ul class="side-nav">
+      <li><a href="#catalog">Project Catalog</a></li>
+      <li><a href="#devenv">Dev Environment</a></li>
+      <li><a href="#deployment">Production</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#milestones">Build Order</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="doc-head">
+      <span class="eyebrow">Architecture · v0.1</span>
+      <h1>Dev Cycle: how the platform is built</h1>
+      <p class="doc-dek">A learning platform where new developers pick a project, clone it with real git, build it on their own machine, and open, review, and merge a pull request — entirely on our own infrastructure. No GitHub account, no external tools. This page is the reference for how it's put together.</p>
+    </div>
+
+    <!-- Overview -->
+    <section id="overview">
+      <div class="section-kicker">01</div>
+      <h2>Overview</h2>
+      <p class="section-intro">The platform's one architectural bet: don't reimplement git. Real git hosting, pull requests, diffs, and merges are delegated to <strong>Gitea</strong>, a self-hosted git server we run ourselves. Our own backend and database handle everything Gitea doesn't know about — the course catalog, who's enrolled in what, and the review workflow layered on top of Gitea's PRs.</p>
+      <div class="callout">
+        <div class="card">
+          <h4>What's real</h4>
+          <p>Git itself. Students run actual <span class="inline-code">git clone</span>, <span class="inline-code">git commit</span>, <span class="inline-code">git push</span> from their own terminal against a repo we host. The muscle memory transfers directly to a real job.</p>
+        </div>
+        <div class="card">
+          <h4>What's simulated</h4>
+          <p>The destination. There is no GitHub anywhere in the loop — the "pull request" a student opens lives entirely on our platform, reviewed by another student, merged by our backend calling Gitea's own API.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture">
+      <div class="section-kicker">02</div>
+      <h2>Component architecture</h2>
+      <p class="section-intro">Five parts, two of which the student touches directly — their own terminal, and the browser. Everything else is infrastructure we run in Docker Compose.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 720 470" role="img" aria-label="Student's machine pushes code to Gitea over git and opens the browser to the React frontend; the frontend and Gitea both talk to the Platform API, which reads and writes DynamoDB." xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrE" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="currentColor"/>
+            </marker>
+            <marker id="arrAccent" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+              <polygon points="0 0, 9 3.5, 0 7" fill="var(--accent)"/>
+            </marker>
+          </defs>
+
+          <!-- Student -->
+          <rect x="250" y="18" width="220" height="54" rx="8" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="360" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="currentColor">STUDENT</text>
+          <text x="360" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">own machine · own editor</text>
+
+          <!-- arrows down from student -->
+          <line x1="300" y1="72" x2="200" y2="150" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrAccent)"/>
+          <text x="205" y="105" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">git clone / push</text>
+          <text x="205" y="118" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">(HTTPS + token)</text>
+
+          <line x1="420" y1="72" x2="520" y2="150" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <text x="440" y="105" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">browser</text>
+          <text x="440" y="118" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">(HTTPS)</text>
+
+          <!-- Gitea -->
+          <rect x="60" y="152" width="290" height="66" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="205" y="177" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="var(--accent-strong)">GITEA</text>
+          <text x="205" y="195" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">repo hosting · PR &amp; diff API · merge</text>
+          <text x="205" y="210" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">fires webhooks on push and merge</text>
+
+          <!-- Frontend -->
+          <rect x="390" y="152" width="270" height="66" rx="8" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="525" y="177" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">REACT FRONTEND</text>
+          <text x="525" y="195" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">catalog · my work · PR review UI</text>
+          <text x="525" y="210" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">diff rendered with diff2html</text>
+
+          <!-- Gitea -> API (webhook) -->
+          <line x1="220" y1="218" x2="290" y2="292" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrAccent)"/>
+          <text x="228" y="252" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">webhook: push,</text>
+          <text x="228" y="265" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">pull_request.merged</text>
+
+          <!-- API -> Gitea (REST) -->
+          <line x1="340" y1="292" x2="270" y2="218" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <text x="345" y="255" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">REST: create repo,</text>
+          <text x="345" y="268" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">open PR, diff, merge</text>
+
+          <!-- Frontend <-> API -->
+          <line x1="505" y1="218" x2="420" y2="292" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <line x1="435" y1="292" x2="520" y2="218" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <text x="430" y="255" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">REST / JSON</text>
+
+          <!-- Platform API -->
+          <rect x="230" y="294" width="260" height="60" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.3"/>
+          <text x="360" y="318" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">PLATFORM API</text>
+          <text x="360" y="336" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">Node.js + Express · REST</text>
+
+          <!-- API <-> DynamoDB -->
+          <line x1="345" y1="354" x2="345" y2="404" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <line x1="375" y1="404" x2="375" y2="354" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrE)"/>
+          <text x="390" y="384" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">read / write</text>
+
+          <!-- DynamoDB -->
+          <rect x="230" y="406" width="260" height="54" rx="8" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="360" y="428" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">DYNAMODB</text>
+          <text x="360" y="446" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">users · projects · PRs · reviews</text>
+        </svg>
+        <figcaption>Gitea owns real git and PR mechanics; the Platform API owns course/review state in DynamoDB and calls Gitea's REST API rather than touching git directly.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Tech stack -->
+    <section id="stack">
+      <div class="section-kicker">03</div>
+      <h2>Tech stack</h2>
+      <div class="stack-grid">
+        <div class="card stack-card">
+          <div class="layer">Git hosting</div>
+          <div class="pick">Gitea (Docker, SQLite mode)</div>
+          <div class="why">Real clone/push/PR/diff/merge over HTTP, plus webhooks and an admin API — without hand-writing the git wire protocol.</div>
+        </div>
+        <div class="card stack-card">
+          <div class="layer">Backend</div>
+          <div class="pick">Node.js + Express, JavaScript</div>
+          <div class="why">REST over GraphQL for this scope — the access patterns are simple CRUD plus a few workflow actions, not deeply nested queries.</div>
+        </div>
+        <div class="card stack-card">
+          <div class="layer">Database</div>
+          <div class="pick">DynamoDB (Local for dev)</div>
+          <div class="why">Multi-table, one table per entity — not single-table design — so the schema stays inspectable while learning DynamoDB.</div>
+        </div>
+        <div class="card stack-card">
+          <div class="layer">Frontend</div>
+          <div class="pick">React + Vite, JavaScript</div>
+          <div class="why">Diffs render client-side with diff2html against JSON the API proxies from Gitea.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lifecycle -->
+    <section id="lifecycle">
+      <div class="section-kicker">04</div>
+      <h2>The pull request lifecycle</h2>
+      <p class="section-intro">This is the mechanism the whole product depends on: the platform never polls Gitea for status — it reacts to webhooks, and only calls Gitea's API to originate an action. Boundary crossings are the whole story.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 700 620" role="img" aria-label="Swimlane diagram: student pushes to Gitea, Gitea webhooks the platform, student opens a PR and reviews in the browser via the platform, platform calls Gitea to create and merge the PR, Gitea webhooks the merge back to the platform." xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrL" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- Lane headers -->
+          <text x="80"  y="24" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="currentColor">STUDENT</text>
+          <text x="350" y="24" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="var(--accent-strong)">GITEA</text>
+          <text x="620" y="24" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="currentColor">PLATFORM (API + DB)</text>
+
+          <!-- Lane rails -->
+          <line x1="80"  y1="36" x2="80"  y2="600" stroke="var(--border)" stroke-width="1"/>
+          <line x1="350" y1="36" x2="350" y2="600" stroke="var(--border)" stroke-width="1"/>
+          <line x1="620" y1="36" x2="620" y2="600" stroke="var(--border)" stroke-width="1"/>
+
+          <!-- 1 push -->
+          <circle cx="80" cy="56" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="80" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">1</text>
+          <line x1="90" y1="56" x2="340" y2="56" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="215" y="49" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">git push feature-branch</text>
+
+          <!-- 2 webhook push -->
+          <circle cx="350" cy="96" r="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="350" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">2</text>
+          <line x1="360" y1="96" x2="610" y2="96" stroke="var(--accent)" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="485" y="89" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">webhook: push → update lastPushedAt</text>
+
+          <!-- 3 open PR (browser) -->
+          <circle cx="80" cy="146" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="80" y="150" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">3</text>
+          <line x1="90" y1="146" x2="610" y2="146" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="350" y="139" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">browser: submit "Open pull request" form</text>
+
+          <!-- 4 API creates PR on gitea -->
+          <circle cx="620" cy="196" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="620" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">4</text>
+          <line x1="610" y1="196" x2="360" y2="196" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="485" y="189" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">REST: create pull request</text>
+
+          <!-- 5 reviewer picked, review submitted -->
+          <circle cx="80" cy="246" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="80" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">5</text>
+          <line x1="90" y1="246" x2="610" y2="246" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="350" y="239" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">reviewer picked → comments + decision (approve / request changes)</text>
+
+          <!-- loop back note -->
+          <rect x="140" y="266" width="420" height="40" rx="6" fill="var(--surface-2)" stroke="var(--border)" stroke-dasharray="3,3"/>
+          <text x="350" y="290" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">if changes requested → student pushes again → steps 1–5 repeat</text>
+
+          <!-- 6 merge click -->
+          <circle cx="80" cy="336" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="80" y="340" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">6</text>
+          <line x1="90" y1="336" x2="610" y2="336" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="350" y="329" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">browser: click "Merge" (only enabled once approved)</text>
+
+          <!-- 7 API merges on gitea -->
+          <circle cx="620" cy="386" r="10" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="620" y="390" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="currentColor">7</text>
+          <line x1="610" y1="386" x2="360" y2="386" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="485" y="379" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">REST: merge pull request</text>
+
+          <!-- 8 webhook merged -->
+          <circle cx="350" cy="436" r="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="350" y="440" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">8</text>
+          <line x1="360" y1="436" x2="610" y2="436" stroke="var(--accent)" stroke-width="1.4" marker-end="url(#arrL)"/>
+          <text x="485" y="429" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">webhook: pull_request.merged</text>
+
+          <!-- final state -->
+          <rect x="480" y="456" width="200" height="46" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="580" y="476" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" font-weight="600" fill="var(--accent-strong)">PR → merged</text>
+          <text x="580" y="492" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" font-weight="600" fill="var(--accent-strong)">enrollment → complete</text>
+        </svg>
+        <figcaption>Every step that crosses a lane is either a real git/HTTP action or a webhook — the platform's DB never has to poll Gitea to know a PR's state.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Data model -->
+    <section id="data">
+      <div class="section-kicker">05</div>
+      <h2>Data model</h2>
+      <p class="section-intro">Six DynamoDB tables, one per entity. <span class="inline-code">Enrollments</span> is the join between a student and a project — it's also the record of which Gitea repo is theirs.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 680 300" role="img" aria-label="Entity relationships: Users and Projects both feed Enrollments; Enrollments and Users feed PullRequests as author and reviewer; PullRequests feeds PrComments and PrReviews." xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrD" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <rect x="20"  y="20" width="150" height="46" rx="7" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="95" y="48" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="currentColor">Users</text>
+
+          <rect x="510" y="20" width="150" height="46" rx="7" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="585" y="48" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="currentColor">Projects</text>
+
+          <rect x="265" y="110" width="150" height="46" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="340" y="138" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="var(--accent-strong)">Enrollments</text>
+
+          <line x1="110" y1="66" x2="300" y2="112" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrD)"/>
+          <text x="165" y="95" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)">1 : N</text>
+
+          <line x1="570" y1="66" x2="390" y2="112" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrD)"/>
+          <text x="500" y="95" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)">1 : N</text>
+
+          <rect x="265" y="200" width="150" height="46" rx="7" fill="var(--surface)" stroke="var(--border)" stroke-width="1.3"/>
+          <text x="340" y="228" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="currentColor">PullRequests</text>
+
+          <line x1="340" y1="156" x2="340" y2="198" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrD)"/>
+          <text x="352" y="180" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)">1 : N</text>
+
+          <path d="M 95 66 C 95 160, 265 205, 263 217" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3,3" marker-end="url(#arrD)"/>
+          <text x="98" y="180" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)">authors / reviews</text>
+
+          <rect x="120" y="260" width="150" height="34" rx="7" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="195" y="282" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="currentColor">PrComments</text>
+
+          <rect x="410" y="260" width="150" height="34" rx="7" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="485" y="282" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="currentColor">PrReviews</text>
+
+          <line x1="310" y1="246" x2="220" y2="262" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrD)"/>
+          <line x1="370" y1="246" x2="460" y2="262" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrD)"/>
+        </svg>
+        <figcaption>Dashed line: a PullRequest references two Users — one as author, one as reviewer — via separate GSIs (GSI-Author, GSI-Reviewer).</figcaption>
+      </figure>
+
+      <h3>Table reference</h3>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>Table</th><th>Key</th><th>Notable attributes</th><th>GSI</th></tr></thead>
+          <tbody>
+            <tr><td class="key">Users</td><td class="mono-cell">PK userId</td><td>username, email, passwordHash, giteaUserId, giteaTokenEncrypted</td><td>GSI-Username, GSI-Email</td></tr>
+            <tr><td class="key">Projects</td><td class="mono-cell">PK projectId</td><td>track, difficulty, specMarkdown, acceptanceCriteria, wireframeImages, starterRepos</td><td>—</td></tr>
+            <tr><td class="key">Enrollments</td><td class="mono-cell">PK userId, SK projectId</td><td>giteaRepoFullName, status, lastPushedAt</td><td>GSI-Project (reviewer picker)</td></tr>
+            <tr><td class="key">PullRequests</td><td class="mono-cell">PK prId</td><td>giteaPrIndex, authorUserId, reviewerUserId, status</td><td>GSI-Author, GSI-Reviewer</td></tr>
+            <tr><td class="key">PrComments</td><td class="mono-cell">PK prId, SK createdAt#id</td><td>authorUserId, body, filePath, lineNumber</td><td>—</td></tr>
+            <tr><td class="key">PrReviews</td><td class="mono-cell">PK prId, SK createdAt#id</td><td>reviewerUserId, decision, body</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Catalog -->
+    <section id="catalog">
+      <div class="section-kicker">06</div>
+      <h2>Project catalog</h2>
+      <p class="section-intro">Every project is a spec, not a fixed-language template — students pick whatever language or framework they want. Three tracks, three difficulty levels each.</p>
+
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>Track</th><th>Beginner</th><th>Intermediate</th><th>Advanced</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="track fe">FRONTEND</span></td>
+              <td>Portfolio page, To-do list, Weather dashboard</td>
+              <td>Kanban board, Recipe finder, Expense tracker</td>
+              <td>Realtime collaborative notes, Multiplayer game UI</td>
+            </tr>
+            <tr>
+              <td><span class="track be">BACKEND</span></td>
+              <td>Notes REST API, URL shortener, Auth service</td>
+              <td>Order/inventory API, Rate-limited gateway, Job queue</td>
+              <td>Redis-backed cache service, Event-driven pub/sub pair</td>
+            </tr>
+            <tr>
+              <td><span class="track fs">FULLSTACK</span></td>
+              <td>Blog platform, Finance tracker</td>
+              <td>E-commerce store, Mini social feed</td>
+              <td>Realtime collab tool with roles, Multi-tenant SaaS starter</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="card">
+          <h4>Starter code</h4>
+          <p>Each project can ship optional starter stubs per language (Node, Python, etc.) as separate Gitea template repos. A student without a matching stub starts from a blank scaffold — never blocked by language choice.</p>
+        </div>
+        <div class="card">
+          <h4>Design guidance</h4>
+          <p>Frontend specs include a low-fidelity wireframe — required layout and UI elements only. Colors, branding, and visual polish are left entirely to the student, so review stays focused on function, not taste.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dev environment -->
+    <section id="devenv">
+      <div class="section-kicker">07</div>
+      <h2>Development environment</h2>
+      <p class="section-intro">Everything runs in Docker Compose on the developer's own machine — no cloud account needed to build or demo.</p>
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>Service</th><th>Image / build</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="key">gitea</td><td class="mono-cell">gitea/gitea</td><td>Git hosting, PR/diff/merge API, webhooks. Bind-mounted to <span class="inline-code">./data/gitea</span>.</td></tr>
+            <tr><td class="key">dynamodb-local</td><td class="mono-cell">amazon/dynamodb-local</td><td>Platform data store, persisted to <span class="inline-code">./data/dynamodb</span>.</td></tr>
+            <tr><td class="key">dynamodb-admin</td><td class="mono-cell">dynamodb-admin</td><td>Visual browser for the tables above.</td></tr>
+            <tr><td class="key">api</td><td class="mono-cell">backend/Dockerfile.dev</td><td>Express app; calls Gitea's API, reads/writes DynamoDB.</td></tr>
+            <tr><td class="key">frontend</td><td class="mono-cell">frontend/Dockerfile.dev</td><td>Vite dev server for the React app.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Deployment -->
+    <section id="deployment">
+      <div class="section-kicker">08</div>
+      <h2>Production deployment</h2>
+      <p class="section-intro">Gitea is the one piece that can't be serverless — it owns real repos on persistent disk. Everything else scales to zero when nobody's using it, which fits a bursty, low-volume learning platform far better than paying for an always-on box.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 720 340" role="img" aria-label="Production: Gitea runs on a persistent VPS; the frontend is a static build on Vercel; both talk to the API, which runs as an Express app inside AWS Lambda via the Lambda Web Adapter and reads and writes real DynamoDB." xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrP" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="currentColor"/>
+            </marker>
+            <marker id="arrPAccent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/>
+            </marker>
+          </defs>
+
+          <rect x="30" y="26" width="230" height="62" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="145" y="52" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="var(--accent-strong)">GITEA · VPS</text>
+          <text x="145" y="70" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">persistent disk · repos</text>
+
+          <rect x="460" y="26" width="230" height="62" rx="8" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="575" y="52" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">FRONTEND · VERCEL</text>
+          <text x="575" y="70" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">static build · CDN + HTTPS</text>
+
+          <rect x="245" y="146" width="230" height="62" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.3"/>
+          <text x="360" y="170" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">API · AWS LAMBDA</text>
+          <text x="360" y="188" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">same Express app, via Lambda Web Adapter</text>
+
+          <rect x="245" y="262" width="230" height="54" rx="8" fill="var(--surface-2)" stroke="var(--border)"/>
+          <text x="360" y="284" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="currentColor">DYNAMODB</text>
+          <text x="360" y="302" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="var(--ink-soft)">on-demand billing · real AWS</text>
+
+          <line x1="180" y1="88" x2="300" y2="148" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrPAccent)"/>
+          <text x="150" y="120" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">webhook: push,</text>
+          <text x="150" y="133" font-family="IBM Plex Mono" font-size="10" fill="var(--accent-strong)">pull_request.merged</text>
+
+          <line x1="330" y1="148" x2="200" y2="90" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrP)"/>
+          <text x="215" y="105" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">REST: repo / PR /</text>
+          <text x="215" y="118" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">diff / merge</text>
+
+          <line x1="555" y1="88" x2="420" y2="148" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrP)"/>
+          <text x="470" y="120" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">HTTPS: Lambda</text>
+          <text x="470" y="133" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">Function URL</text>
+
+          <line x1="345" y1="208" x2="345" y2="260" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrP)"/>
+          <line x1="375" y1="260" x2="375" y2="208" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrP)"/>
+          <text x="390" y="238" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-soft)">read / write</text>
+        </svg>
+        <figcaption>Only Gitea runs 24/7 on a box you pay for by the hour. The API scales to zero on Lambda's permanent free tier; DynamoDB and the frontend are already pay-per-use.</figcaption>
+      </figure>
+
+      <h3>Why Lambda over ECS/EC2 for the API</h3>
+      <p style="color:var(--ink-soft); font-size: 13.5px; max-width: 68ch;">ECS and EC2 bill by the hour whether a student is using the platform or not — a fixed cost from day one. Lambda bills per invocation, with 1M requests and 400,000 GB-seconds of compute free every month, permanently. For a bursty, low-volume learning platform this keeps the API near $0/month at MVP scale, with less to operate (no cluster, task definitions, or scaling policies). The crossover where a fixed server gets cheaper only happens at sustained high-volume traffic, well past MVP.</p>
+
+      <div class="table-wrap card">
+        <table>
+          <thead><tr><th>Piece</th><th>Where</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="key">Gitea</td><td class="mono-cell">VPS (Docker), Caddy for HTTPS</td><td>Needs persistent disk + a long-running stateful process — can't be serverless.</td></tr>
+            <tr><td class="key">API</td><td class="mono-cell">AWS Lambda + Function URL</td><td>Same Express code, packaged with the Lambda Web Adapter; stateless request/response fits Lambda natively.</td></tr>
+            <tr><td class="key">DynamoDB</td><td class="mono-cell">Real AWS, on-demand</td><td>Same SDK calls as dev — only the endpoint and credentials change.</td></tr>
+            <tr><td class="key">Frontend</td><td class="mono-cell">Vercel / Netlify</td><td>Static build, free tier, auto HTTPS + CDN.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap">
+      <div class="section-kicker">09</div>
+      <h2>Roadmap</h2>
+      <p class="section-intro">MVP is solo-student, start to merge. Team support is designed for, not built yet.</p>
+      <ul class="plain">
+        <li><strong>Now:</strong> solo enrollment, manual reviewer picker from other students on the same project.</li>
+        <li><strong>Phase 2:</strong> <span class="inline-code">Teams</span> / <span class="inline-code">TeamMembers</span> tables; reviewer assignment auto-picks from teammates when a project is team-owned, without reshaping <span class="inline-code">PullRequests</span>.</li>
+      </ul>
+    </section>
+
+    <!-- Build order -->
+    <section id="milestones">
+      <div class="section-kicker">10</div>
+      <h2>Build order</h2>
+      <div class="steps">
+        <div class="step"><div class="step-rail"><div class="step-dot">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Stand up Gitea + DynamoDB Local</div><div class="step-desc">Confirm a real <span class="inline-code">git clone</span>/<span class="inline-code">push</span> works against Compose-hosted Gitea before writing any app code.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Backend skeleton</div><div class="step-desc">Express app, DynamoDB client, table-creation script, health check.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Auth + Gitea provisioning</div><div class="step-desc">Register/login; backend creates a matching Gitea user and token per student.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Catalog + enrollment</div><div class="step-desc">Seed sample projects, fork template repos in Gitea, show the clone URL.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">5</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Webhooks</div><div class="step-desc">Wire Gitea's push webhook; verify delivery in Gitea's own admin log.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">6</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">PR flow, diff, review, merge</div><div class="step-desc">Create/list PRs, render diffs with diff2html, comments and decisions, merge via Gitea's API.</div></div></div>
+        <div class="step"><div class="step-rail"><div class="step-dot">7</div></div><div class="step-body"><div class="step-title">End-to-end pass</div><div class="step-desc">Two accounts, one full loop from start to merge, by hand.</div></div></div>
+      </div>
+    </section>
+  </main>
+</div>
