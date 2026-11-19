@@ -1,12 +1,30 @@
-const express = require('express');
+const config = require('./config');
+const { pool, withTransaction } = require('./db/pool');
+const { makeStore } = require('./db/store');
+const { makeUserStore } = require('./db/userStore');
+const { createGiteaOAuth } = require('./auth/giteaOAuth');
+const { createApp } = require('./app');
 
-const app = express();
-const PORT = process.env.PORT || 4000;
+const giteaOAuth = createGiteaOAuth({
+  baseUrl: config.giteaBaseUrl,
+  clientId: config.giteaOAuthClientId,
+  clientSecret: config.giteaOAuthClientSecret,
+  redirectUri: config.giteaOAuthRedirectUrl,
+});
+if (!giteaOAuth.isConfigured) {
+  console.warn(
+    'Sign in with Gitea is not configured: set GITEA_OAUTH_CLIENT_ID and GITEA_OAUTH_CLIENT_SECRET',
+  );
+}
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+const app = createApp({
+  config,
+  withTransaction,
+  makeStore,
+  userStore: makeUserStore(pool),
+  giteaOAuth,
 });
 
-app.listen(PORT, () => {
-  console.log(`API listening on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`API listening on port ${config.port}`);
 });

@@ -1,10 +1,9 @@
 node_modules/
 .env
 dev-cycle-architecture.html
+notes/
 data/gitea/*
 !data/gitea/.gitkeep
-data/dynamodb/*
-!data/dynamodb/.gitkeep
 dist/
 build/
 *.log

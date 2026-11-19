@@ -1,0 +1,252 @@
+.quest-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.quest-card-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 10px 0 0 10px;
+}
+
+.quest-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.quest-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.quest-card-title {
+  font-family: var(--mono);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.quest-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.quest-card-subline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.quest-card-dot {
+  color: var(--border);
+}
+
+.quest-card-difficulty {
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: #0a1a28;
+  border: 1px solid #1a3050;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.quest-card-pushed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.quest-card-clone-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #080f1a;
+  border: 1px solid #1a2640;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.quest-card-clone-url {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quest-card-copy-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+}
+
+.quest-card-pr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #120b00;
+  border: 1px solid #2a1e00;
+  border-radius: 6px;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+}
+
+.quest-card-pr-info {
+  flex: 1;
+}
+
+.quest-card-pr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.quest-card-pr-number {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.quest-pr-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--warning-bg);
+  border: 1px solid #5a3800;
+  color: var(--warning);
+}
+
+.quest-card-pr-detail {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.quest-card-pr-reviewer {
+  font-family: var(--mono);
+  color: #7a90b0;
+}
+
+.quest-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quest-card-tags {
+  display: flex;
+  gap: 5px;
+}
+
+.quest-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #0d1622;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.quest-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.quest-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.quest-btn-ghost {
+  padding: 8px 16px;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.quest-btn-accent {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.quest-btn-warning {
+  background: var(--warning-bg);
+  border-color: #3a2800;
+  color: var(--warning);
+}
+
+.quest-card-merged {
+  background: var(--surface-2);
+  border-color: var(--border-soft);
+  padding: 16px 22px;
+  opacity: 0.65;
+}
+
+.quest-card-merged-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quest-card-merged-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quest-card-merged-title {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.quest-card-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}

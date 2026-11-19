@@ -1,20 +1,30 @@
 {
-  "name": "backend",
+  "name": "questline-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Questline API: Gitea webhooks, quests and reviewer queue",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "node src/index.js",
-    "create-tables": "node src/db/scripts/createTables.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "migrate": "node src/db/scripts/migrate.js",
+    "test": "node --test test/",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1127.0",
-    "@aws-sdk/lib-dynamodb": "^3.1127.0",
-    "express": "^5.2.1"
+    "dotenv": "^18.0.10",
+    "express": "^5.2.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1"
   }
 }
